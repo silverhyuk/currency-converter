@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOGS_ABSOLUTE_PATH" value="./logs" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>[%d{yyyy-MM-dd HH:mm:ss}:%-3relative] %-5level %logger{36} - %msg%n</Pattern>
+        </layout>
+    </appender>
+    <appender name="DETAIL" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}:%-3relative][%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS_ABSOLUTE_PATH}/logback.log</file>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}:%-3relative][%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS_ABSOLUTE_PATH}/logback.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 100MB -->
+                <maxFileSize>50MB</maxFileSize>
+                <!-- kb, mb, gb -->
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="org.thymeleaf" level="INFO" additivity="false"/>
+    <logger name="org.h2.server.web" level="INFO" additivity="false"/>
+    <logger name="org.springframework.web" level="INFO" additivity="false"/>
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG" additivity="false"/>
+
+
+    <!-- local env -->
+    <springProfile name="local">
+
+        <logger name="org.springframework.boot" level="WARN" additivity="false"/>
+        <logger name="org.springframework.web" level="DEBUG" additivity="false"/>
+        <logger name="com.silverhyuk.currencyconverter" level="DEBUG" additivity="false">
+            <appender-ref ref="DETAIL" />
+        </logger>
+        <root level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
+    <!-- prod env -->
+    <springProfile name="prod" >
+        <logger name="org.springframework" level="INFO" additivity="false" >
+            <appender-ref ref="DETAIL" />
+        </logger>
+        <logger name="com.silverhyuk.currencyconverter" level="DEBUG" additivity="false" >
+            <appender-ref ref="DETAIL" />
+        </logger>
+        <root level="INFO" additivity="false">
+            <appender-ref ref="FILE" />
+        </root>
+
+    </springProfile>
+</configuration>

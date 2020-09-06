@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Currency Rate</title>
+    <link th:href="@{/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <!-- jQuery -->
+    <script th:src="@{/asset/js/jquery-3.5.1.min.js}"></script>
+    <!-- Bootstrap -->
+    <script th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+
+</head>
+<body class="bg-light">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 order-md-1">
+            <hr class="mb-4">
+            <h4 class="mb-3">환율 계산</h4>
+            <hr class="mb-4">
+            <form class="needs-validation" novalidate="">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="sourceNation">송금국가(코드)</label>
+                        <input type="text" class="form-control" id="sourceNation" name="sourceNation" th:value="${currencyDto.getSourceName()} + '(' + ${currencyDto.getSourceCode()} + ')'" readonly="readonly">
+                        <input type="hidden" id="sourceCode" th:value="${currencyDto.getSourceCode()}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="targetCurrencyCode">수취국가(코드)</label>
+                        <select class="custom-select d-block w-100" id="targetCurrencyCode" name="targetCurrencyCode" required>
+                            <option value="">Choose...</option>
+                            <option th:each="itemData : ${selectCurrencies}" th:value="${itemData.key}" th:text="${itemData.value} + '(' + ${itemData.key} + ')'"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="currencyRate">환율 </label>
+                    <input type="text" class="form-control" id="currencyRate" name="currencyRate"  readonly="readonly">
+                </div>
+
+                <div class="mb-3">
+                    <label for="remittance">송금액</label>
+                    <input type="text" class="form-control" id="remittance" name="remittance" required>
+
+                </div>
+                <hr class="mb-4">
+                <button class="btn btn-primary btn-lg btn-block" id="submitBtn" type="button">계산하기</button>
+            </form>
+            <hr class="mb-4">
+             <div  id="amountReceived" name="amountReceived"></div>
+        </div>
+    </div>
+
+    <footer class="my-5 pt-5 text-muted text-center text-small">
+        <p class="mb-1">© 2020 SilverHyuk </p>
+    </footer>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#remittance').on('keypress', function (event) {
+            const inputVal = $(this).val();
+            $(this).val(inputVal.replace(/[^0-9]/gi,''));
+            if (event.which == 13) {
+                clickSubmitBtn();
+            }
+        });
+        $("#targetCurrencyCode").on('change', function() {
+            changedTargetCurrencyCode();
+        });
+        $("#submitBtn").on('click', function() {
+            clickSubmitBtn();
+        });
+    });
+
+    /* 환율 코드 변경시 동작 함수 */
+    function changedTargetCurrencyCode() {
+        const targetCurrencyCode = $("#targetCurrencyCode").val();
+        const sourceCurrencyCode = $("#sourceCode").val();
+        if(targetCurrencyCode == null || targetCurrencyCode == '') {
+            $("#currencyRate").val('');
+        } else {
+            $.ajax({
+                type: "GET",
+                url: "/currency/getCurrencyRate",
+                dataType:"json",
+                cache: false,
+                data: "targetCurrencyCode=" + targetCurrencyCode,
+                success: function(data){
+                    const currencyRate = data.currencyRate;
+                    $("#currencyRate").val(currencyRate + ' ' + targetCurrencyCode + '/' + sourceCurrencyCode);
+
+                },
+                error: function(request,status,error)
+                {
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                },
+                complete: function(){
+                }
+            });
+        }
+    }
+
+    /* 환율 계산 버튼 클릭시 동작 함수 */
+    function clickSubmitBtn() {
+        const targetCurrencyCode = $("#targetCurrencyCode").val();
+        const remittance = $("#remittance").val();
+
+        if(targetCurrencyCode == null || targetCurrencyCode == '') {
+            alert("수취 국가 코드를 선택해야 합니다.")
+            $("#targetCurrencyCode").focus();
+            return false;
+        }
+
+        if(remittance == null || remittance == '') {
+            alert("송금액을 입력해야 합니다.")
+            $("#remittance").focus();
+            return false;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/currency/getAmountReceived",
+            dataType:"json",
+            contentType: "application/json",
+            cache: false,
+            data: JSON.stringify({targetCurrencyCode:targetCurrencyCode ,remittance:remittance}),
+            success: function(data){
+                const amountReceived = data.amountReceived;
+                const result = "수취금액은 " + amountReceived + " " + targetCurrencyCode + " 입니다.";
+                $("#amountReceived").text(result);
+            },
+            error: function(request,status,error)
+            {
+                alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+            },
+            complete: function(){
+            }
+        });
+
+    }
+
+</script>
+</body>
+</html>

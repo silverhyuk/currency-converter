@@ -1,0 +1,67 @@
+spring:
+  profiles:
+    active: prod
+
+mybatis:
+  type-aliases-package: com.silverhyuk.currencyconverter
+  mapper-locations: mybatis/mapper/**/*.xml
+  config-location: classpath:mybatis/mybatis-config.xml
+
+restTemplate:
+  factory:
+    readTimeout: 5000
+    connectTimeout: 3000
+  httpClient:
+    maxConnTotal: 100
+    maxConnPerRoute: 5
+
+apiCurrencylayer:
+  url : http://api.currencylayer.com/live
+  accessKey : ce80709efe1c53a2941efc32b238bd21
+  source : USD
+  currencies : KRW,JPY,PHP
+
+---
+# 로컬 개발 환경
+spring:
+  profiles: local
+
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+
+  thymeleaf:
+      cache: false
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/cc?characterEncoding=UTF-8&serverTimezone=UTC
+    username: cc_user
+    password: cc_user000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 8080
+
+---
+# 상용 환경
+spring:
+  profiles: prod
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      enabled: false
+
+  thymeleaf:
+    cache: true
+
+  datasource:
+    url: jdbc:mysql://192.168.0.225:3306/cc?characterEncoding=UTF-8&serverTimezone=UTC
+    username: cc_user
+    password: cc_user000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 80

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.silverhyuk.currencyconverter.web.mapper.CurrencyApiHistoryMapper">
+    <select id="getCurrencyApiHistoryList" parameterType="com.silverhyuk.currencyconverter.web.dvo.CurrencyApiHistoryVo" resultType="com.silverhyuk.currencyconverter.web.dvo.CurrencyApiHistoryVo">
+        /*[currency_api_history.xml].[getCurrencyApiHistory]  <![CDATA[ ]]> */
+        SELECT 	currency_api_history_id,
+	            currency_api_datetime,
+	            exchange_rates,
+	            reg_datetime
+	    FROM currency_api_history
+	    <if test="isLastData">
+            WHERE currency_api_history_id = (SELECT MAX(currency_api_history_id) FROM currency_api_history);
+        </if>
+    </select>
+
+
+
+    <insert id="setCurrencyApiHistoryInfo" parameterType="com.silverhyuk.currencyconverter.web.dvo.CurrencyApiHistoryVo" >
+        /*[currency_api_history.xml].[setCurrencyApiHistoryInfo] */
+        INSERT INTO currency_api_history(
+            currency_api_datetime
+            ,exchange_rates
+            ,reg_datetime
+        ) VALUES (
+            #{currencyApiDatetime}
+            ,#{exchangeRates}
+            ,NOW()
+        )
+        <selectKey keyProperty="currencyApiHistoryId" resultType="Integer" order="AFTER">
+            select LAST_INSERT_ID() AS currencyApiHistoryId
+        </selectKey>
+    </insert>
+
+</mapper>
