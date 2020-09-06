@@ -138,6 +138,12 @@
             return false;
         }
 
+        if(remittance < 0 || remittance > 10000) {
+            alert("송금액이 바르지 않습니다.")
+            $("#remittance").focus();
+            return false;
+        }
+
         $.ajax({
             type: "POST",
             url: "/currency/getAmountReceived",
